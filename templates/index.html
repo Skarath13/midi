@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Music Transcriber</title>
+</head>
+<body>
+  <h1>Upload an Audio File</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul style="color:red;">
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" enctype="multipart/form-data">
+    <input type="file" name="audio" accept=".wav,.mp3,.flac" required>
+    <button type="submit">Transcribe</button>
+  </form>
+
+  {% if audio_file %}
+    <h2>Results for {{ audio_file }}</h2>
+    <h3>Waveform</h3>
+    <img src="{{ url_for('static_files', filename=audio_file) }}" style="max-width:600px;">
+    <h3>MIDI Download</h3>
+    <a href="{{ url_for('static_files', filename=midi_file) }}" download>Download MIDI</a>
+    <h3>Sheet Music</h3>
+    <img src="{{ url_for('static_files', filename=png_file) }}" style="max-width:600px;">
+    <p><a href="{{ url_for('static_files', filename=xml_file) }}" download>Download MusicXML</a></p>
+  {% endif %}
+</body>
+</html>
