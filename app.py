@@ -41,17 +41,15 @@ def index():
             notes = detect_midi_notes(y, sr)
             write_midi(notes, midi_path)
 
-            try:
-                midi_to_sheet(midi_path, xml_path, png_output=png_path)
-            except SystemExit as e:
-                app.logger.warning('PNG rendering failed: %s', e)
+            # Only generate MusicXML; skip heavy PNG on low-memory instances
+            midi_to_sheet(midi_path, xml_path, png_output=None)
 
             return render_template(
                 'index.html',
                 audio_file=os.path.basename(audio_path),
                 midi_file=os.path.basename(midi_path),
                 xml_file=os.path.basename(xml_path),
-                png_file=os.path.basename(png_path)
+                png_file=None
             )
 
         return render_template('index.html')
