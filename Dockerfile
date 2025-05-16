@@ -1,34 +1,33 @@
-# Dockerfile
-
 FROM python:3.13-slim
 
-# 1) Install MuseScore, fonts, and C toolchain
+# 1) OS-level deps (including libs matplotlib needs)
 RUN apt-get update && \
     apt-get install -y \
       musescore \
       fonts-dejavu \
       gcc \
-      build-essential && \
+      build-essential \
+      libfreetype6-dev \
+      libpng-dev \
+      pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
-# 2) Set working directory and install Python deps (including matplotlib)
 WORKDIR /app
-COPY requirements.txt ./
+
+# 2) Copy everything in (so requirements.txt and your code is here)
+COPY . .
+
+# 3) Install Python deps (now matplotlib is pulled in)
 RUN python -m pip install --upgrade pip setuptools wheel \
  && pip install -r requirements.txt
 
-# 3) Pre‐build Matplotlib font cache to avoid runtime memory spikes
+# 4) Now rebuild the font cache
 ENV MPLCONFIGDIR=/tmp/matplotlib
 RUN python - <<EOF
 import matplotlib
 matplotlib.font_manager._rebuild()
 EOF
 
-# 4) Copy the rest of your app code
-COPY . .
-
-# 5) Tell Flask to bind to the port Render provides
+# 5) Expose and run
 ENV PORT=10000
-
-# 6) Run Gunicorn with a single worker
-CMD ["sh", "-c", "gunicorn app:app --bind 0.0.0.0:$PORT --workers 1"]
+CMD ["sh","-c","gunicorn app:app --bind 0.0.0.0:$PORT --workers 1"]
