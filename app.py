@@ -10,8 +10,7 @@ from music21 import environment
 
 # Configure MuseScore path for PNG rendering
 us = environment.UserSettings()
-mscore_path = os.getenv('MUSESCORE_PATH', 'C:/Program Files/MuseScore 4/bin/MuseScore4.exe')
-us['musescoreDirectPNGPath'] = mscore_path
+us['musescoreDirectPNGPath'] = '/usr/bin/mscore3'
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static'
