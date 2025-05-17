@@ -3,76 +3,144 @@
 <head>
   <meta charset="utf-8">
   <title>Music Transcriber</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #4A90E2;
+      margin-top: 0;
+    }
+    .btn {
+      background: #4A90E2;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    .btn:hover {
+      background: #357ABD;
+    }
+    .section {
+      margin-top: 30px;
+    }
+    .section h3 {
+      color: #4A90E2;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .note {
+      font-size: 0.9em;
+      color: #555;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+    input[type="file"] {
+      font-size: 1em;
+    }
+    a {
+      color: #4A90E2;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <h1>Music Transcriber</h1>
+  <div class="container">
+    <h1>Music Transcriber</h1>
 
-  <!-- Supported formats notice -->
-  <div style="border: 2px solid #4A90E2; padding: 15px;
-              background-color: #EAF4FB; margin-bottom: 20px;
-              border-radius: 5px; max-width: 400px;">
-    <strong>Supported audio formats:</strong>
-    <ul style="margin: 10px 0 0 20px;">
-      <li>WAV (.wav)</li>
-      <li>MP3 (.mp3)</li>
-      <li>FLAC (.flac)</li>
+    <p>Upload a short audio clip (WAV, MP3, or FLAC) and we’ll:</p>
+    <ul class="note">
+      <li>Detect the musical notes</li>
+      <li>Generate a MIDI file you can download</li>
+      <li>Display a waveform visualization</li>
+      <li>Provide a MusicXML (sheet-music) download</li>
     </ul>
-  </div>
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul style="color:red;">
-      {% for msg in messages %}
-        <li>{{ msg }}</li>
-      {% endfor %}
+    <!-- Supported formats notice -->
+    <div style="border: 2px solid #4A90E2; padding: 15px; background-color: #EAF4FB; margin-bottom: 20px; border-radius: 5px; max-width: 400px;">
+      <strong>Supported audio formats:</strong>
+      <ul style="margin: 10px 0 0 20px;">
+        <li>WAV (.wav)</li>
+        <li>MP3 (.mp3)</li>
+        <li>FLAC (.flac)</li>
       </ul>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="color:red;">
+        {% for msg in messages %}
+          <li>{{ msg }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" enctype="multipart/form-data" class="section">
+      <label for="audio"><strong>Select an audio file:</strong></label><br>
+      <input type="file" id="audio" name="audio" accept=".wav,.mp3,.flac" required><br><br>
+      <button type="submit" class="btn">Transcribe Now</button>
+    </form>
+
+    {% if audio_file %}
+      <div class="section">
+        <h2>Results for "{{ audio_file }}"</h2>
+
+        <div class="section">
+          <h3>Original Audio Playback</h3>
+          <p class="note">Play back the exact file you uploaded.</p>
+          <audio controls>
+            <source src="{{ url_for('static_files', filename=audio_file) }}" type="audio/{{ audio_file.rsplit('.',1)[1] }}">
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+
+        <div class="section">
+          <h3>Waveform Visualization</h3>
+          <p class="note">Shows the audio’s amplitude (loudness) over time.</p>
+          <img src="{{ url_for('static_files', filename=audio_file) }}" style="max-width:100%;" alt="Audio waveform">
+        </div>
+
+        <div class="section">
+          <h3>MIDI File</h3>
+          <p class="note">Encodes the detected notes—import into any DAW or sequencer.</p>
+          <a href="{{ url_for('static_files', filename=midi_file) }}" download>Download MIDI</a>
+        </div>
+
+        <div class="section">
+          <h3>Sheet Music Preview</h3>
+          <p class="note">A rendered image of the MusicXML notation (if available).</p>
+          {% if png_file %}
+            <img src="{{ url_for('static_files', filename=png_file) }}" style="max-width:100%;" alt="Sheet music preview">
+          {% else %}
+            <em>No image preview (PNG) available on this server.</em>
+          {% endif %}
+        </div>
+
+        <div class="section">
+          <h3>MusicXML Download</h3>
+          <p class="note">Download the MusicXML file to open in your preferred notation software.</p>
+          <a href="{{ url_for('static_files', filename=xml_file) }}" download>Download MusicXML</a>
+        </div>
+      </div>
     {% endif %}
-  {% endwith %}
-
-  <form method="post" enctype="multipart/form-data">
-    <label for="audio">Choose an audio file to transcribe:</label><br>
-    <input type="file" id="audio" name="audio"
-           accept=".wav,.mp3,.flac" required><br><br>
-    <button type="submit">Transcribe</button>
-  </form>
-
-  {# ========  START OF FIXED RESULTS BLOCK ======== #}
-  {% if audio_file %}
-    <h2>Results for {{ audio_file }}</h2>
-
-    <h3>Original Audio Playback</h3>
-    <audio controls>
-      <source
-        src="{{ url_for('static_files', filename=audio_file) }}"
-        type="audio/{{ audio_file.rsplit('.',1)[1] }}">
-      Your browser does not support the audio element.
-    </audio>
-
-    <h3>Waveform</h3>
-    <img
-      src="{{ url_for('static_files', filename=audio_file) }}"
-      style="max-width:600px;"
-      alt="Audio waveform">
-
-    <h3>MIDI Download</h3>
-    <a href="{{ url_for('static_files', filename=midi_file) }}" download>
-      Download MIDI
-    </a>
-
-    <h3>Sheet Music Preview</h3>
-    {% if png_file %}
-      <img
-        src="{{ url_for('static_files', filename=png_file) }}"
-        style="max-width:600px;"
-        alt="Sheet music preview">
-    {% endif %}
-
-    <h3>MusicXML</h3>
-    <a href="{{ url_for('static_files', filename=xml_file) }}" download>
-      Download MusicXML
-    </a>
-  {% endif %}
-  {# ========   END OF FIXED RESULTS BLOCK ========  #}
-
+  </div>
 </body>
 </html>
