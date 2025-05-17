@@ -48,18 +48,17 @@
     <h3>MIDI Download</h3>
     <a href="{{ url_for('static_files', filename=midi_file) }}" download>Download MIDI</a>
 
-    <h3>Sheet Music Preview</h3>
+   <h3>Sheet Music Preview</h3>
 
-    <!-- ↓ Only show this image if png_file is set: -->
-    <mark>{% raw %}{% if png_file %}{% endraw %}</mark>
+    {% if png_file %}
       <img
         src="{{ url_for('static_files', filename=png_file) }}"
         style="max-width:600px;"
         alt="Sheet music preview">
-    <mark>{% raw %}{% endif %}{% endraw %}</mark>
-    <!-- ↑ end conditional -->
+    {% endif %}
 
-    <p><a href="{{ url_for('static_files', filename=xml_file) }}" download>Download MusicXML</a></p>
-  {% endif %}
-</body>
-</html>
+    <p>
+      <a href="{{ url_for('static_files', filename=xml_file) }}" download>
+        Download MusicXML
+      </a>
+    </p>
