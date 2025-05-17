@@ -7,8 +7,10 @@
 <body>
   <h1>Music Transcriber</h1>
 
-  <!-- Prominent supported formats notice -->
-  <div style="border: 2px solid #4A90E2; padding: 15px; background-color: #EAF4FB; margin-bottom: 20px; border-radius: 5px; max-width: 400px;">
+  <!-- Supported formats notice -->
+  <div style="border: 2px solid #4A90E2; padding: 15px;
+              background-color: #EAF4FB; margin-bottom: 20px;
+              border-radius: 5px; max-width: 400px;">
     <strong>Supported audio formats:</strong>
     <ul style="margin: 10px 0 0 20px;">
       <li>WAV (.wav)</li>
@@ -29,27 +31,35 @@
 
   <form method="post" enctype="multipart/form-data">
     <label for="audio">Choose an audio file to transcribe:</label><br>
-    <input type="file" id="audio" name="audio" accept=".wav,.mp3,.flac" required><br><br>
+    <input type="file" id="audio" name="audio"
+           accept=".wav,.mp3,.flac" required><br><br>
     <button type="submit">Transcribe</button>
   </form>
 
+  {# ========  START OF FIXED RESULTS BLOCK ======== #}
   {% if audio_file %}
     <h2>Results for {{ audio_file }}</h2>
 
     <h3>Original Audio Playback</h3>
     <audio controls>
-      <source src="{{ url_for('static_files', filename=audio_file) }}" type="audio/{{ audio_file.rsplit('.',1)[1] }}">
+      <source
+        src="{{ url_for('static_files', filename=audio_file) }}"
+        type="audio/{{ audio_file.rsplit('.',1)[1] }}">
       Your browser does not support the audio element.
     </audio>
 
     <h3>Waveform</h3>
-    <img src="{{ url_for('static_files', filename=audio_file) }}" style="max-width:600px;" alt="Audio waveform">
+    <img
+      src="{{ url_for('static_files', filename=audio_file) }}"
+      style="max-width:600px;"
+      alt="Audio waveform">
 
     <h3>MIDI Download</h3>
-    <a href="{{ url_for('static_files', filename=midi_file) }}" download>Download MIDI</a>
+    <a href="{{ url_for('static_files', filename=midi_file) }}" download>
+      Download MIDI
+    </a>
 
-   <h3>Sheet Music Preview</h3>
-
+    <h3>Sheet Music Preview</h3>
     {% if png_file %}
       <img
         src="{{ url_for('static_files', filename=png_file) }}"
@@ -57,8 +67,12 @@
         alt="Sheet music preview">
     {% endif %}
 
-    <p>
-      <a href="{{ url_for('static_files', filename=xml_file) }}" download>
-        Download MusicXML
-      </a>
-    </p>
+    <h3>MusicXML</h3>
+    <a href="{{ url_for('static_files', filename=xml_file) }}" download>
+      Download MusicXML
+    </a>
+  {% endif %}
+  {# ========   END OF FIXED RESULTS BLOCK ========  #}
+
+</body>
+</html>
