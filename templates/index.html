@@ -1,146 +1,335 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Music Transcriber</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #4A90E2;
-      margin-top: 0;
-    }
-    .btn {
-      background: #4A90E2;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1em;
-    }
-    .btn:hover {
-      background: #357ABD;
-    }
-    .section {
-      margin-top: 30px;
-    }
-    .section h3 {
-      color: #4A90E2;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 5px;
-    }
-    .note {
-      font-size: 0.9em;
-      color: #555;
-      margin-top: 5px;
-      margin-bottom: 10px;
-    }
-    input[type="file"] {
-      font-size: 1em;
-    }
-    a {
-      color: #4A90E2;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melody Transcriber - Musical Magic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Klee One', cursive;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8E8 50%, #F0E68C 100%);
+            min-height: 100vh;
+        }
+        
+        /* Animated clouds */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.7;
+        }
+        
+        .cloud::before {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+        }
+        
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 20%;
+            animation: float 20s infinite;
+        }
+        
+        .cloud1::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+        
+        .cloud2 {
+            width: 80px;
+            height: 35px;
+            top: 40%;
+            animation: float 25s infinite;
+        }
+        
+        .cloud2::before {
+            width: 60px;
+            height: 40px;
+            top: -20px;
+            right: 15px;
+        }
+        
+        @keyframes float {
+            0% { transform: translateX(-100px); }
+            100% { transform: translateX(calc(100vw + 100px)); }
+        }
+        
+        /* Musical notes animation */
+        .music-note {
+            position: absolute;
+            font-size: 2rem;
+            animation: floatUp 8s infinite;
+            opacity: 0;
+        }
+        
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+        
+        /* File input styling */
+        input[type="file"]::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+        
+        input[type="file"]::before {
+            content: 'Choose Audio File';
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 3rem;
+            padding: 12px 24px;
+            outline: none;
+            white-space: nowrap;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        input[type="file"]:hover::before {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* Loading animation */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Result cards hover effect */
+        .result-card {
+            transition: all 0.3s;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <h1>Music Transcriber</h1>
+<body class="relative overflow-x-hidden">
+    <!-- Animated background elements -->
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="music-note fixed text-purple-300" style="left: 10%; animation-delay: 0s;">♪</div>
+    <div class="music-note fixed text-pink-300" style="left: 30%; animation-delay: 2s;">♫</div>
+    <div class="music-note fixed text-blue-300" style="left: 50%; animation-delay: 4s;">♬</div>
+    <div class="music-note fixed text-green-300" style="left: 70%; animation-delay: 6s;">♪</div>
+    <div class="music-note fixed text-yellow-300" style="left: 90%; animation-delay: 8s;">♫</div>
 
-    <p>Upload a short audio clip (WAV, MP3, or FLAC) and we’ll:</p>
-    <ul class="note">
-      <li>Detect the musical notes</li>
-      <li>Generate a MIDI file you can download</li>
-      <li>Display a waveform visualization</li>
-      <li>Provide a MusicXML (sheet-music) download</li>
-    </ul>
+    <div class="container mx-auto px-4 py-8 relative z-10">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
+                🎵 Melody Transcriber 🎵
+            </h1>
+            <p class="text-xl text-white/90 drop-shadow">Transform your audio into magical musical notation</p>
+        </div>
 
-    <!-- Supported formats notice -->
-    <div style="border: 2px solid #4A90E2; padding: 15px; background-color: #EAF4FB; margin-bottom: 20px; border-radius: 5px; max-width: 400px;">
-      <strong>Supported audio formats:</strong>
-      <ul style="margin: 10px 0 0 20px;">
-        <li>WAV (.wav)</li>
-        <li>MP3 (.mp3)</li>
-        <li>FLAC (.flac)</li>
-      </ul>
+        <!-- Main Card -->
+        <div class="max-w-4xl mx-auto bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 md:p-12">
+            <!-- Upload Section -->
+            <div class="text-center mb-8">
+                <div class="inline-block p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full mb-4">
+                    <svg class="w-16 h-16 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                </div>
+                
+                <h2 class="text-3xl font-semibold text-gray-800 mb-4">Upload Your Musical Journey</h2>
+                <p class="text-gray-600 mb-6">Support for WAV, MP3, and FLAC audio files</p>
+                
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="mb-4">
+                            {% for msg in messages %}
+                                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-2">
+                                    {{ msg }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-6">
+                        <input type="file" id="audio" name="audio" accept=".wav,.mp3,.flac" required 
+                               class="w-full max-w-md mx-auto block cursor-pointer">
+                    </div>
+                    
+                    <!-- Method Selection -->
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 mb-6 max-w-2xl mx-auto">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Choose Your Transcription Magic</h3>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="method" value="improved" checked class="peer sr-only">
+                                <div class="p-4 bg-white rounded-xl border-2 border-gray-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all">
+                                    <div class="font-semibold text-gray-800">✨ Improved</div>
+                                    <div class="text-sm text-gray-600 mt-1">Best for most music</div>
+                                </div>
+                            </label>
+                            
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="method" value="onset" class="peer sr-only">
+                                <div class="p-4 bg-white rounded-xl border-2 border-gray-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all">
+                                    <div class="font-semibold text-gray-800">🥁 Onset-based</div>
+                                    <div class="text-sm text-gray-600 mt-1">Great for rhythmic</div>
+                                </div>
+                            </label>
+                            
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="method" value="filtered" class="peer sr-only">
+                                <div class="p-4 bg-white rounded-xl border-2 border-gray-200 peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all">
+                                    <div class="font-semibold text-gray-800">🎯 Filtered</div>
+                                    <div class="text-sm text-gray-600 mt-1">Cleaner output</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                        <span id="buttonText">Transcribe the Magic ✨</span>
+                        <div id="loader" class="loader mx-auto hidden"></div>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            {% if audio_file %}
+            <div class="mt-12 animate-fade-in">
+                <h2 class="text-3xl font-semibold text-center text-gray-800 mb-8">
+                    🎼 Your Musical Transcription 🎼
+                </h2>
+                
+                <!-- Stats -->
+                <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-6 mb-8 text-center">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="text-3xl font-bold text-gray-800">{{ num_notes }}</div>
+                            <div class="text-sm text-gray-600">Notes Detected</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-gray-800">{{ method|title }}</div>
+                            <div class="text-sm text-gray-600">Method Used</div>
+                        </div>
+                        <div class="md:col-span-1 col-span-2">
+                            <div class="text-3xl font-bold text-gray-800">✅</div>
+                            <div class="text-sm text-gray-600">Ready to Download</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Download Cards -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Original Audio -->
+                    <div class="result-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-blue-100 rounded-full mr-4">
+                                <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">Original Audio</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">Listen to your uploaded file</p>
+                        <audio controls class="w-full">
+                            <source src="{{ url_for('static_files', filename=audio_file) }}" type="audio/{{ audio_file.rsplit('.',1)[1] }}">
+                        </audio>
+                    </div>
+                    
+                    <!-- MIDI Download -->
+                    <div class="result-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-purple-100 rounded-full mr-4">
+                                <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">MIDI File</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">Import into any music software</p>
+                        <a href="{{ url_for('static_files', filename=midi_file) }}" download 
+                           class="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-2 px-6 rounded-full hover:shadow-lg transform hover:scale-105 transition-all">
+                            Download MIDI 🎹
+                        </a>
+                    </div>
+                    
+                    <!-- MusicXML Download -->
+                    <div class="result-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-green-100 rounded-full mr-4">
+                                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">Sheet Music</h3>
+                        </div>
+                        <p class="text-gray-600 mb-4">MusicXML for notation software</p>
+                        <a href="{{ url_for('static_files', filename=xml_file) }}" download 
+                           class="inline-block bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold py-2 px-6 rounded-full hover:shadow-lg transform hover:scale-105 transition-all">
+                            Download MusicXML 🎼
+                        </a>
+                    </div>
+                    
+                    <!-- Sheet Preview (if available) -->
+                    {% if png_file %}
+                    <div class="result-card bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 bg-yellow-100 rounded-full mr-4">
+                                <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800">Sheet Preview</h3>
+                        </div>
+                        <img src="{{ url_for('static_files', filename=png_file) }}" alt="Sheet music preview" class="w-full rounded-lg">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-12 text-white/80">
+            <p class="text-sm">Made with 💜 and musical magic</p>
+            <p class="text-xs mt-2">Inspired by the whimsical worlds of Studio Ghibli</p>
+        </div>
     </div>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul style="color:red;">
-        {% for msg in messages %}
-          <li>{{ msg }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+    <script>
+        // Form submission animation
+        document.getElementById('uploadForm').addEventListener('submit', function() {
+            document.getElementById('buttonText').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+        });
 
-    <form method="post" enctype="multipart/form-data" class="section">
-      <label for="audio"><strong>Select an audio file:</strong></label><br>
-      <input type="file" id="audio" name="audio" accept=".wav,.mp3,.flac" required><br><br>
-      <button type="submit" class="btn">Transcribe Now</button>
-    </form>
-
-    {% if audio_file %}
-      <div class="section">
-        <h2>Results for "{{ audio_file }}"</h2>
-
-        <div class="section">
-          <h3>Original Audio Playback</h3>
-          <p class="note">Play back the exact file you uploaded.</p>
-          <audio controls>
-            <source src="{{ url_for('static_files', filename=audio_file) }}" type="audio/{{ audio_file.rsplit('.',1)[1] }}">
-            Your browser does not support the audio element.
-          </audio>
-        </div>
-
-        <div class="section">
-          <h3>Waveform Visualization</h3>
-          <p class="note">Shows the audio’s amplitude (loudness) over time.</p>
-          <img src="{{ url_for('static_files', filename=audio_file) }}" style="max-width:100%;" alt="Audio waveform">
-        </div>
-
-        <div class="section">
-          <h3>MIDI File</h3>
-          <p class="note">Encodes the detected notes—import into any DAW or sequencer.</p>
-          <a href="{{ url_for('static_files', filename=midi_file) }}" download>Download MIDI</a>
-        </div>
-
-        <div class="section">
-          <h3>Sheet Music Preview</h3>
-          <p class="note">A rendered image of the MusicXML notation (if available).</p>
-          {% if png_file %}
-            <img src="{{ url_for('static_files', filename=png_file) }}" style="max-width:100%;" alt="Sheet music preview">
-          {% else %}
-            <em>No image preview (PNG) available on this server.</em>
-          {% endif %}
-        </div>
-
-        <div class="section">
-          <h3>MusicXML Download</h3>
-          <p class="note">Download the MusicXML file to open in your preferred notation software.</p>
-          <a href="{{ url_for('static_files', filename=xml_file) }}" download>Download MusicXML</a>
-        </div>
-      </div>
-    {% endif %}
-  </div>
+        // Fade in animation
+        if (document.querySelector('.animate-fade-in')) {
+            setTimeout(() => {
+                document.querySelector('.animate-fade-in').style.opacity = '1';
+            }, 100);
+        }
+    </script>
 </body>
 </html>
