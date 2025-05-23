@@ -1,16 +1,57 @@
-# Virtual environments
-.venv/
-venv/
-
-# Python caches
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# pytest cache
-.pytest_cache/
+# Flask
+instance/
+.webassets-cache
 
-# IDE/editor settings
+# Static files (uploaded/generated)
+static/
+\!static/.gitkeep
+
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Test files
+test_*.wav
+test_*.mp3
+test_*.flac
+test_*.mid
+*.wav
+*.mp3
+*.flac
+*.mid
+*.musicxml
+*.png
+
+# Keep requirements
+\!requirements.txt
