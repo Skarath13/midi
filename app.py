@@ -1,10 +1,14 @@
 import os
 import traceback
 from flask import Flask, request, render_template, send_from_directory, redirect, flash
+import librosa
 from audio_io import load_audio
 from pitch_detect_improved import detect_midi_notes_improved, detect_midi_notes_with_onset
+from pitch_detect_advanced import detect_midi_notes_advanced, detect_time_signature
 from midi_writer_improved import write_midi_improved, write_midi_with_filtering
+from midi_writer_advanced import write_midi_advanced, smooth_midi_dynamics
 from notation import midi_to_sheet
+from notation_advanced import midi_to_sheet_advanced, analyze_musical_structure
 from music21 import environment
 
 # Configure MuseScore path if available
@@ -53,12 +57,35 @@ def index():
             y, sr = load_audio(audio_path)
             
             # Use selected transcription method
+            tempo = None
+            time_signature = None
+            
             if method == 'onset':
                 notes = detect_midi_notes_with_onset(y, sr)
                 write_midi_improved(notes, midi_path)
             elif method == 'filtered':
                 notes = detect_midi_notes_improved(y, sr)
                 write_midi_with_filtering(notes, midi_path, min_duration=0.1, max_duration=1.5)
+            elif method == 'advanced':
+                # Use new advanced method with rhythm quantization
+                notes, tempo = detect_midi_notes_advanced(y, sr, quantize=True, tempo_analysis=True)
+                
+                # Detect time signature with enhanced downbeat detection
+                if tempo:
+                    # Get onset envelope and beats for better time signature detection
+                    onset_env = librosa.onset.onset_strength(y=y, sr=sr, aggregate=np.median)
+                    _, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
+                    beat_times = librosa.frames_to_time(beats, sr=sr)
+                    time_signature = detect_time_signature(beat_times, notes, onset_env, beats)
+                else:
+                    time_signature = (4, 4)
+                
+                # Write MIDI with advanced features
+                write_midi_advanced(notes, midi_path, tempo=tempo, time_signature=time_signature)
+            elif method == 'smooth':
+                # Use advanced detection with smooth playback
+                notes, tempo = detect_midi_notes_advanced(y, sr, quantize=False, tempo_analysis=True)
+                smooth_midi_dynamics(notes, midi_path, tempo=tempo)
             else:  # default 'improved'
                 notes = detect_midi_notes_improved(y, sr)
                 write_midi_improved(notes, midi_path)
@@ -66,14 +93,31 @@ def index():
             # Generate MusicXML and PNG if MuseScore is available
             png_generated = False
             try:
-                if mscore:
-                    # Try to generate with PNG
-                    midi_to_sheet(midi_path, xml_path, png_output=png_path, musescore_path=mscore)
-                    if os.path.exists(png_path):
-                        png_generated = True
+                # Use advanced notation for advanced methods
+                if method in ['advanced', 'smooth']:
+                    if mscore:
+                        # Try to generate with PNG using advanced method
+                        midi_to_sheet_advanced(midi_path, xml_path, png_output=png_path, 
+                                             musescore_path=mscore, tempo_bpm=tempo,
+                                             time_signature=time_signature, add_rests=True,
+                                             simplify_rhythms=(method == 'advanced'))
+                        if os.path.exists(png_path):
+                            png_generated = True
+                    else:
+                        # Just generate MusicXML without PNG
+                        midi_to_sheet_advanced(midi_path, xml_path, png_output=None,
+                                             tempo_bpm=tempo, time_signature=time_signature,
+                                             add_rests=True, simplify_rhythms=(method == 'advanced'))
                 else:
-                    # Just generate MusicXML without PNG
-                    midi_to_sheet(midi_path, xml_path, png_output=None)
+                    # Use original notation for other methods
+                    if mscore:
+                        # Try to generate with PNG
+                        midi_to_sheet(midi_path, xml_path, png_output=png_path, musescore_path=mscore)
+                        if os.path.exists(png_path):
+                            png_generated = True
+                    else:
+                        # Just generate MusicXML without PNG
+                        midi_to_sheet(midi_path, xml_path, png_output=None)
             except Exception as e:
                 print(f"[WARNING] Sheet generation issue: {e}")
                 # Ensure at least MusicXML is generated
