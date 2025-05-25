@@ -4,7 +4,17 @@ A sophisticated web-based application that automatically transcribes audio files
 
 ## 🎵 What's New in This Fork
 
-### Version 2.0 Changelog
+### Version 3.0 - Future Features Release
+
+**Revolutionary New Capabilities:**
+- 🎹 **Polyphonic Transcription**: Detect multiple simultaneous notes and chords
+- 🎼 **Key Signature Detection**: Automatic detection of musical key using Krumhansl-Schmuckler algorithm
+- 🎵 **Chord Recognition**: Real-time chord progression analysis
+- 🎺 **Instrument Recognition**: AI-powered instrument classification
+- 🎤 **Real-time Transcription**: Live audio input with instant note detection
+- 🎮 **MIDI Controller Support**: Connect MIDI keyboards and controllers
+
+### Version 2.0 Features
 
 **Major Enhancements:**
 - Fixed rhythm and timing issues with beat-aligned quantization
@@ -16,6 +26,8 @@ A sophisticated web-based application that automatically transcribes audio files
 ### Advanced Transcription Modes
 - **🎵 Advanced Mode**: Full rhythm quantization with tempo detection, time signature analysis, and rest insertion
 - **🌊 Smooth Mode**: Enhanced playback with dynamic smoothing to eliminate audio artifacts
+- **🎹 Polyphonic Mode**: Transcribe multiple simultaneous notes (chords, harmonies)
+- **🎼 Harmonic Mode**: Analyze key signatures and chord progressions
 - **✨ Improved Mode**: Enhanced pitch detection with note consolidation
 - **🥁 Onset-based Mode**: Rhythm-focused transcription using onset detection
 - **🎯 Filtered Mode**: Cleaner output with duration filtering
@@ -114,6 +126,8 @@ python app.py
 3. Choose your transcription method:
    - **🎵 Advanced**: Best for sheet music with proper rhythm and rests
    - **🌊 Smooth**: Best for MIDI playback without artifacts
+   - **🎹 Polyphonic**: For music with multiple simultaneous notes
+   - **🎼 Harmonic**: Analyze key signatures and chord progressions
    - **✨ Improved**: Good general-purpose transcription
    - **🥁 Onset-based**: Best for rhythmic/percussive music
    - **🎯 Filtered**: Cleanest output with filtered notes
@@ -127,16 +141,39 @@ python app.py
    - **MusicXML**: For notation software like MuseScore, Finale, or Sibelius
    - **PNG preview**: Visual sheet music (if MuseScore is installed)
 
-### Command Line
+### Real-time Transcription
 
-For direct processing without the web interface:
-```bash
-python main.py
+Access the real-time transcription interface:
+1. Navigate to `http://localhost:8001/realtime`
+2. Click "Start" to begin live transcription
+3. Play music into your microphone
+4. See notes appear in real-time!
+
+### MIDI Controller Input
+
+To use a MIDI controller:
+```python
+from midi_controller import MIDIController, MIDIToAudioTranscription
+
+# List available MIDI ports
+controller = MIDIController()
+controller.list_available_ports()
+
+# Start live MIDI transcription
+transcriber = MIDIToAudioTranscription()
+transcriber.start_live_transcription()
 ```
-This expects an `input.wav` file in the project directory and generates:
-- `transcription_output.mid`
-- `output_sheet.musicxml`
-- `output_sheet.png` (if MuseScore is configured)
+
+### Command Line Examples
+
+Test specific features:
+```bash
+# Test polyphonic transcription
+python -c "from polyphonic_transcription import transcribe_polyphonic; print('Ready')"
+
+# Test all future features
+python test_future_features.py
+```
 
 ## Project Structure
 
@@ -146,15 +183,22 @@ midi/
 ├── audio_io.py                 # Audio loading and visualization
 ├── pitch_detect_improved.py    # Enhanced pitch detection algorithms
 ├── pitch_detect_advanced.py    # Advanced detection with tempo/rhythm
+├── polyphonic_transcription.py # Multi-note simultaneous detection
+├── key_chord_detection.py      # Key signature and chord analysis
+├── instrument_recognition.py   # Timbre-based instrument classification
+├── realtime_audio.py          # Real-time audio processing
+├── midi_controller.py         # MIDI controller input handling
 ├── midi_writer_improved.py     # Improved MIDI generation
 ├── midi_writer_advanced.py     # Advanced MIDI with dynamics/tempo
 ├── notation.py                 # Basic MusicXML conversion
 ├── notation_advanced.py        # Advanced notation with measures/rests
 ├── templates/
-│   └── index.html             # Ghibli-inspired web interface
+│   ├── index.html             # Ghibli-inspired web interface
+│   └── realtime.html          # Real-time transcription interface
 ├── static/                     # Upload directory and output files
 ├── requirements.txt            # Python dependencies
-└── test_advanced_features.py   # Test suite for new features
+├── test_advanced_features.py   # Test suite for v2.0 features
+└── test_future_features.py     # Test suite for v3.0 features
 ```
 
 ## Technical Details
@@ -242,15 +286,52 @@ The Advanced mode excels at:
 3. **Missing notes**: Lower the magnitude threshold in the code
 4. **Too many notes**: Increase the minimum note duration
 
+## New Features Documentation
+
+### Polyphonic Transcription
+- Uses harmonic product spectrum for fundamental frequency detection
+- Supports up to 6 simultaneous notes by default
+- Salience-based note detection with peak finding
+- Handles complex chords and harmonies
+
+### Key Signature Detection
+- Implements Krumhansl-Schmuckler algorithm
+- Correlates chroma vectors with major/minor profiles
+- Provides confidence scores for detected keys
+- Windowed analysis for consistency checking
+
+### Chord Recognition
+- Template matching against common chord types
+- Supports major, minor, diminished, augmented, 7th chords
+- Real-time chord progression tracking
+- Exports chord progressions as MIDI
+
+### Instrument Recognition
+- Timbre feature extraction (MFCCs, spectral features)
+- Heuristic classification based on acoustic properties
+- Per-section instrument analysis
+- Multi-instrument MIDI export
+
+### Real-time Processing
+- PyAudio-based audio streaming
+- Configurable buffer sizes and processing intervals
+- Monophonic and polyphonic modes
+- Web-based real-time visualization
+
+### MIDI Controller Support
+- Compatible with all standard MIDI devices
+- Real-time note and controller tracking
+- Recording and playback capabilities
+- Virtual MIDI port support
+
 ## Contributing
 
-This fork has already implemented many requested features! Future enhancements:
-- Polyphonic transcription support (multiple simultaneous notes)
-- Instrument recognition
-- Real-time audio processing
-- MIDI controller input
-- Key signature detection
-- Chord recognition
+All major features have been implemented! Areas for further enhancement:
+- Machine learning models for instrument recognition
+- More sophisticated chord voicing detection
+- Integration with DAWs
+- Mobile app development
+- Cloud-based processing
 
 ## Credits
 

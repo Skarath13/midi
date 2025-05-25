@@ -9,6 +9,9 @@ from midi_writer_improved import write_midi_improved, write_midi_with_filtering
 from midi_writer_advanced import write_midi_advanced, smooth_midi_dynamics
 from notation import midi_to_sheet
 from notation_advanced import midi_to_sheet_advanced, analyze_musical_structure
+from polyphonic_transcription import transcribe_polyphonic, write_polyphonic_midi
+from key_chord_detection import detect_key_signature, detect_chord_progression, analyze_harmonic_structure, create_chord_midi
+from instrument_recognition import analyze_instrumentation, segment_by_instrument, create_multi_instrument_midi
 from music21 import environment
 
 # Configure MuseScore path if available
@@ -86,6 +89,25 @@ def index():
                 # Use advanced detection with smooth playback
                 notes, tempo = detect_midi_notes_advanced(y, sr, quantize=False, tempo_analysis=True)
                 smooth_midi_dynamics(notes, midi_path, tempo=tempo)
+            elif method == 'polyphonic':
+                # Polyphonic transcription
+                notes = transcribe_polyphonic(y, sr, max_polyphony=6)
+                write_polyphonic_midi(notes, midi_path, tempo=120)
+            elif method == 'harmonic':
+                # Harmonic analysis with key and chord detection
+                notes = detect_midi_notes_improved(y, sr)
+                write_midi_improved(notes, midi_path)
+                
+                # Additional analysis files
+                harmonic_analysis = analyze_harmonic_structure(y, sr)
+                
+                # Save chord progression as MIDI
+                chord_midi_path = os.path.join(app.config['UPLOAD_FOLDER'], 'chords.mid')
+                if harmonic_analysis['chord_progression']:
+                    create_chord_midi(harmonic_analysis['chord_progression'], chord_midi_path)
+                
+                # Store analysis results for template
+                request.harmonic_analysis = harmonic_analysis
             else:  # default 'improved'
                 notes = detect_midi_notes_improved(y, sr)
                 write_midi_improved(notes, midi_path)
@@ -126,15 +148,29 @@ def index():
                 except:
                     pass
 
-            return render_template(
-                'index.html',
-                audio_file=os.path.basename(audio_path),
-                midi_file=os.path.basename(midi_path),
-                xml_file=os.path.basename(xml_path),
-                png_file=os.path.basename(png_path) if png_generated else None,
-                num_notes=len(notes),
-                method=method
-            )
+            # Prepare template data
+            template_data = {
+                'audio_file': os.path.basename(audio_path),
+                'midi_file': os.path.basename(midi_path),
+                'xml_file': os.path.basename(xml_path),
+                'png_file': os.path.basename(png_path) if png_generated else None,
+                'num_notes': len(notes),
+                'method': method
+            }
+            
+            # Add harmonic analysis if available
+            if hasattr(request, 'harmonic_analysis'):
+                template_data['harmonic_analysis'] = request.harmonic_analysis
+                template_data['chord_midi_file'] = 'chords.mid'
+            
+            # Add instrument analysis for all methods
+            try:
+                instrument_info = analyze_instrumentation(y, sr)
+                template_data['instrument_analysis'] = instrument_info
+            except:
+                pass
+            
+            return render_template('index.html', **template_data)
 
         # GET request
         return render_template('index.html')
@@ -148,6 +184,53 @@ def index():
 @app.route('/static/<path:filename>')
 def static_files(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/realtime')
+def realtime():
+    """Real-time transcription page."""
+    return render_template('realtime.html')
+
+@app.route('/api/realtime/start', methods=['POST'])
+def start_realtime():
+    """Start real-time transcription."""
+    from realtime_audio import RealtimeTranscriber
+    
+    mode = request.json.get('mode', 'monophonic')
+    
+    # Store transcriber in app context (simplified for demo)
+    if not hasattr(app, 'transcriber'):
+        app.transcriber = RealtimeTranscriber(transcription_mode=mode)
+        app.transcriber.start()
+        return {'status': 'started', 'mode': mode}
+    else:
+        return {'status': 'already_running'}, 400
+
+@app.route('/api/realtime/stop', methods=['POST'])
+def stop_realtime():
+    """Stop real-time transcription."""
+    if hasattr(app, 'transcriber'):
+        app.transcriber.stop()
+        del app.transcriber
+        return {'status': 'stopped'}
+    else:
+        return {'status': 'not_running'}, 400
+
+@app.route('/api/realtime/results', methods=['GET'])
+def get_realtime_results():
+    """Get real-time transcription results."""
+    if hasattr(app, 'transcriber'):
+        results = []
+        # Get up to 10 results
+        for _ in range(10):
+            result = app.transcriber.get_results(timeout=0.01)
+            if result:
+                results.append({
+                    'type': result[0],
+                    'data': result[1]
+                })
+        return {'results': results}
+    else:
+        return {'error': 'not_running'}, 400
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8001)
